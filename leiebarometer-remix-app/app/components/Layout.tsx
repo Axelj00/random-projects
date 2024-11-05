@@ -16,6 +16,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <button
               className="md:hidden focus:outline-none"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               <svg
                 className="w-6 h-6"
@@ -76,7 +77,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </header>
       <main className="flex-1 p-6 container mx-auto">{children}</main>
       <footer className="bg-neutral-dark text-white p-4 text-center">
-        &copy; {new Date().getFullYear()} Property Finder. All rights reserved.
+        © {new Date().getFullYear()} Property Finder. All rights reserved.
       </footer>
     </div>
   );

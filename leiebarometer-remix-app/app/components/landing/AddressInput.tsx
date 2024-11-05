@@ -5,10 +5,10 @@ interface AddressInputProps {
   onSelect: (address: string, coordinates: { lat: string; lon: string }) => void;
 }
 
-// Extend the Window interface to include the Google Maps API
 declare global {
   interface Window {
     google: typeof google;
+    env: { GOOGLE_API_KEY: string };
   }
 }
 
@@ -16,12 +16,20 @@ const AddressInput: React.FC<AddressInputProps> = ({ onSelect }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<{ description: string; place_id: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Flag to ensure component only renders on client-side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+
     const loadGoogleMapsScript = () => {
       if (!window.google) {
         const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&libraries=places`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${window.env.GOOGLE_API_KEY}&libraries=places`;
         script.async = true;
         script.onload = () => initializeAutocompleteService();
         document.head.appendChild(script);
@@ -45,10 +53,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ onSelect }) => {
         setIsLoading(true);
         autocompleteService.getPlacePredictions(
           { input, componentRestrictions: { country: "NO" } },
-          (
-            predictions: google.maps.places.AutocompletePrediction[] | null,
-            status: google.maps.places.PlacesServiceStatus
-          ) => {
+          (predictions, status) => {
             if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
               setSuggestions(
                 predictions.map((place) => ({
@@ -73,7 +78,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ onSelect }) => {
     };
 
     loadGoogleMapsScript();
-  }, [query]);
+  }, [query, isClient]);
 
   const handleSelect = async (suggestion: { description: string; place_id: string }) => {
     setQuery(suggestion.description);
@@ -82,7 +87,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ onSelect }) => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode(
       { placeId: suggestion.place_id },
-      (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
+      (results, status) => {
         if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
           const location = results[0].geometry.location;
           onSelect(suggestion.description, {
@@ -94,10 +99,16 @@ const AddressInput: React.FC<AddressInputProps> = ({ onSelect }) => {
     );
   };
 
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <div className="relative">
       <input
         type="text"
+        id="address"
+        name="address"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsLoading(true)}

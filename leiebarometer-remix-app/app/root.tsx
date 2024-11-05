@@ -1,36 +1,36 @@
 // app/root.tsx
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
-
+import { json, LoaderFunction } from "@remix-run/node"; 
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "@remix-run/react";
 import "./tailwind.css";
 
-export const links: LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap",
-  },
-];
+interface LoaderData {
+  GOOGLE_API_KEY: string;
+}
 
-export function Document({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// Loader function for environment variables with Cache-Control headers
+export const loader: LoaderFunction = () => {
+  return json<LoaderData>(
+    {
+      GOOGLE_API_KEY: process.env.REACT_APP_GOOGLE_API_KEY || "",
+    },
+    {
+      headers: {
+        "Cache-Control": "public, max-age=3600", // 1 hour cache
+      },
+    }
+  );
+};
+
+// Document component with accessibility and hydration fixes
+export function Document({ children }: { children: React.ReactNode }) {
+  const { GOOGLE_API_KEY } = useLoaderData<LoaderData>();
+
   return (
     <html lang="en">
       <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Property Finder</title>
         <Meta />
         <Links />
       </head>
@@ -38,6 +38,11 @@ export function Document({
         {children}
         <ScrollRestoration />
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.env = ${JSON.stringify({ GOOGLE_API_KEY })};`,
+          }}
+        />
       </body>
     </html>
   );
