@@ -31,12 +31,14 @@ const AddressInput: React.FC<AddressInputProps> = ({ onSelect }) => {
         const script = document.createElement("script");
         script.src = `https://maps.googleapis.com/maps/api/js?key=${window.env.GOOGLE_API_KEY}&libraries=places`;
         script.async = true;
+        script.defer = true; // Adds defer for better loading
         script.onload = () => initializeAutocompleteService();
         document.head.appendChild(script);
       } else {
         initializeAutocompleteService();
       }
     };
+    
 
     const initializeAutocompleteService = () => {
       if (!window.google) return;
