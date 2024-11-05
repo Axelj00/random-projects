@@ -6,6 +6,7 @@ import DarkModeToggle from "~/components/utils/DarkModeToggle";
 import AddressInput from "~/components/landing/AddressInput";
 import ListingTable from "~/components/landing/ListingTable";
 import SearchParams from "~/components/landing/SearchParams";
+import SqmPriceCounter from "~/components/landing/SqmPriceCounter";
 import { toast } from "sonner";
 
 interface BuyListing {
@@ -55,6 +56,9 @@ export default function Index() {
   const [radius, setRadius] = useState<number>(100);
   const [propertyType, setPropertyType] = useState<string>("3"); // Default to Leilighet
 
+  // New state for average sqm price
+  const [avgPricePerSqm, setAvgPricePerSqm] = useState<number>(0);
+
   const handleAddressSelect = async (
     address: string,
     coordinates: { lat: string; lon: string }
@@ -69,6 +73,7 @@ export default function Index() {
     setBuyListings([]);
     setRentalListings([]);
     setBestOption(null);
+    setAvgPricePerSqm(0); // Reset average price
 
     try {
       // Build the query parameters with radius and property_type
@@ -94,6 +99,16 @@ export default function Index() {
       setBuyListings(data.buyListings);
       setRentalListings(data.rentalListings);
       setBestOption(data.bestOption);
+
+      // Calculate average price per sqm
+      const validRentalListings = data.rentalListings.filter(
+        (rental: RentalListing) => rental.price_per_sqm && !isNaN(parseFloat(rental.price_per_sqm))
+      );
+      const avg =
+        validRentalListings.reduce((sum: number, rental: RentalListing) => sum + parseFloat(rental.price_per_sqm!), 0) /
+          validRentalListings.length || 0;
+      setAvgPricePerSqm(avg);
+
       setLoading(false);
     } catch (err) {
       console.error("Error fetching listings:", err);
@@ -128,6 +143,10 @@ export default function Index() {
                 setPropertyType={setPropertyType}
               />
             </div>
+            {/* New SqmPriceCounter component */}
+            {avgPricePerSqm > 0 && (
+              <SqmPriceCounter price={avgPricePerSqm} />
+            )}
           </div>
 
           {loading && (

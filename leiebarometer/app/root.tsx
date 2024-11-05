@@ -12,6 +12,8 @@ import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import React, { useEffect } from "react";
 import { loadGoogleMaps } from "~/utils/loadGoogleMaps";
+import "./tailwind.css";
+
 
 interface LoaderData {
   env: {
@@ -38,7 +40,7 @@ export const links: LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
-  { rel: "stylesheet", href: "/app/tailwind.css" }, // Ensure Tailwind CSS is correctly linked
+  { rel: "stylesheet", href: "/build/tailwind.css" }, // Ensure Tailwind CSS is correctly linked
 ];
 
 export default function App() {
