@@ -61,7 +61,19 @@ const fetchListings = async <T>(
   const listings: T[] = [];
   let page = 1;
 
+  // Start time to prevent timeouts
+  const startTime = Date.now();
+  const maxTime = 8000; // Max time in milliseconds (e.g., 8 seconds)
+
   while (listings.length < maxListings) {
+    // Check if we have exceeded the max time
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime > maxTime) {
+      const timeoutError = new Error("Timeout: The request took too long to complete.");
+      timeoutError.name = "TimeoutError";
+      throw timeoutError;
+    }
+
     const searchParams = new URLSearchParams({
       ...params,
       page: page.toString(),
@@ -95,6 +107,8 @@ const fetchListings = async <T>(
 
       console.log(`Processed page ${page} with ${articles.length} listings.`);
       page += 1;
+
+      // Add a delay between requests to be polite to the server
       await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
     } catch (error) {
       console.error(`Error fetching listings: ${error}`);
@@ -132,20 +146,26 @@ export const getBuyListings = async (
           .trim() || "N/A";
 
         const sizePriceDiv = $(element).find("div.flex.justify-between");
-        const size = sizePriceDiv
+        const sizeText = sizePriceDiv
           .find("span")
           .first()
           .text()
           .replace(/\s/g, "")
           .replace("m²", "")
           .trim() || "N/A";
-        const price = sizePriceDiv
+
+        const size = parseInt(sizeText);
+        // Filter out listings with unreasonable size
+        if (isNaN(size) || size < 10 || size > 1000) return null;
+
+        const priceText = sizePriceDiv
           .find("span")
           .last()
           .text()
           .replace(/\s/g, "")
           .replace("kr", "")
           .trim() || "N/A";
+        const price = parseInt(priceText) || "N/A";
 
         const detailsDiv = $(element).find("div.text-xs.s-text-subtle");
         let total_price_kr: number | string = "N/A";
@@ -177,8 +197,8 @@ export const getBuyListings = async (
           title,
           listing_url: listingUrl,
           address,
-          size_m2: size,
-          price_kr: price,
+          size_m2: size.toString(),
+          price_kr: price.toString(),
           total_price_kr,
           fellesutgifter_kr,
           ownership_type,
@@ -220,20 +240,26 @@ export const getRentalListings = async (
           .trim() || "N/A";
 
         const sizePriceDiv = $(element).find("div.flex.justify-between");
-        const size = sizePriceDiv
+        const sizeText = sizePriceDiv
           .find("span")
           .first()
           .text()
           .replace(/\s/g, "")
           .replace("m²", "")
           .trim() || "N/A";
-        const rental_price = sizePriceDiv
+
+        const size = parseInt(sizeText);
+        // Filter out listings with unreasonable size
+        if (isNaN(size) || size < 10 || size > 1000) return null;
+
+        const rentalPriceText = sizePriceDiv
           .find("span")
           .last()
           .text()
           .replace(/\s/g, "")
           .replace("kr", "")
           .trim() || "N/A";
+        const rental_price = parseInt(rentalPriceText) || "N/A";
 
         const detailsDiv = $(element).find("div.text-xs.s-text-subtle");
         let ownership_type = "N/A";
@@ -251,8 +277,8 @@ export const getRentalListings = async (
           title,
           listing_url: listingUrl,
           address,
-          size_m2: size,
-          rental_price_kr: rental_price,
+          size_m2: size.toString(),
+          rental_price_kr: rental_price.toString(),
           ownership_type,
           number_of_rooms: rooms,
         };
@@ -269,10 +295,9 @@ export const createRentalParams = (buyParams: Record<string, string>): Record<st
 
   // Update the parameters for rental
   rentalParams["radius"] = rentalParams["radius"] || "1000"; // Use provided radius or default
-  rentalParams["property_type"] = "3"; // Adjust if needed
 
   // Remove parameters not relevant to rental
-  const keysToRemove = ["ownership_type", "rent_to", "lifecycle", "total_price_kr", "fellesutgifter_kr"];
+  const keysToRemove = ["ownership_type"];
   keysToRemove.forEach((key) => {
     delete rentalParams[key];
   });

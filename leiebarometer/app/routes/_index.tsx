@@ -1,13 +1,12 @@
-// app/routes/_Index.tsx
+// app/routes/_index.tsx
 
 import type { MetaFunction } from "@remix-run/node";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DarkModeToggle from "~/components/utils/DarkModeToggle";
-import AddressInput from "~/components/landing/AddressInput";
+import SearchForm from "~/components/landing/SearchForm";
 import ListingTable from "~/components/landing/ListingTable";
-import SearchParams from "~/components/landing/SearchParams";
 import SqmPriceCounter from "~/components/landing/SqmPriceCounter";
-import { toast } from "sonner";
+import Highlights from "~/components/landing/Highlights";
 
 interface BuyListing {
   title: string;
@@ -52,16 +51,37 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // New states for search parameters
-  const [radius, setRadius] = useState<number>(100);
-  const [propertyType, setPropertyType] = useState<string>("3"); // Default to Leilighet
-
   // New state for average sqm price
   const [avgPricePerSqm, setAvgPricePerSqm] = useState<number>(0);
 
-  const handleAddressSelect = async (
+  // State to keep track of dark mode
+  const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check if 'dark' class is present on the html element
+    const classList = document.documentElement.classList;
+    const darkModeOn = classList.contains("dark");
+    setIsDarkMode(darkModeOn);
+
+    // Observer to watch for changes in the 'dark' class
+    const observer = new MutationObserver(() => {
+      const darkModeUpdated = document.documentElement.classList.contains("dark");
+      setIsDarkMode(darkModeUpdated);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleSearch = async (
     address: string,
-    coordinates: { lat: string; lon: string }
+    coordinates: { lat: string; lon: string },
+    radius: number,
+    propertyType: string
   ) => {
     console.log("Valgt adresse:", address);
     console.log("Koordinater:", coordinates);
@@ -88,7 +108,7 @@ export default function Index() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.error || "An error occurred while fetching listings.");
+        setError(errorData.error || "En feil oppstod under henting av annonser.");
         setLoading(false);
         return;
       }
@@ -96,23 +116,33 @@ export default function Index() {
       const data = await response.json();
       console.log("API Response:", data); // Added logging for debugging
 
+      if (data.buyListings.length === 0 || data.rentalListings.length === 0) {
+        setError("Ingen treff for søket ditt. Vennligst prøv med andre søkeparametere.");
+        setLoading(false);
+        return;
+      }
+
       setBuyListings(data.buyListings);
       setRentalListings(data.rentalListings);
       setBestOption(data.bestOption);
 
       // Calculate average price per sqm
       const validRentalListings = data.rentalListings.filter(
-        (rental: RentalListing) => rental.price_per_sqm && !isNaN(parseFloat(rental.price_per_sqm))
+        (rental: RentalListing) =>
+          rental.price_per_sqm && !isNaN(parseFloat(rental.price_per_sqm))
       );
       const avg =
-        validRentalListings.reduce((sum: number, rental: RentalListing) => sum + parseFloat(rental.price_per_sqm!), 0) /
-          validRentalListings.length || 0;
+        validRentalListings.reduce(
+          (sum: number, rental: RentalListing) =>
+            sum + parseFloat(rental.price_per_sqm!),
+          0
+        ) / validRentalListings.length || 0;
       setAvgPricePerSqm(avg);
 
       setLoading(false);
     } catch (err) {
       console.error("Error fetching listings:", err);
-      setError("An unexpected error occurred.");
+      setError("En uventet feil oppstod. Vennligst prøv igjen senere.");
       setLoading(false);
     }
   };
@@ -122,31 +152,31 @@ export default function Index() {
       <DarkModeToggle />
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
+        {/* Logo and Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-dark-text mb-4 tracking-tight">
-            Leiebarometeret
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          {isDarkMode !== null && (
+            <img
+              src={isDarkMode ? "/brand/LBlogoDark.png" : "/brand/LBlogoLight.png"}
+              alt="Leiebarometeret"
+              className="mx-auto w-full max-w-xs h-auto"
+            />
+          )}
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mt-4">
             Finn ut hva du skal gi eller ta i leie basert på faktiske markedspriser
           </p>
         </div>
 
+        {/* Ad Space Above Content */}
+        <div className="mb-8">
+          {/* Placeholder for Ad */}
+          <div className="bg-gray-200 dark:bg-dark-border rounded-lg h-24 flex items-center justify-center">
+            <span className="text-gray-500 dark:text-gray-400">Annonseplass</span>
+          </div>
+        </div>
+
         <div className="space-y-8">
           <div className="bg-white dark:bg-dark-card rounded-xl shadow-soft p-6">
-            <AddressInput onSelect={handleAddressSelect} />
-            {/* New SearchParams component */}
-            <div className="mt-6">
-              <SearchParams
-                radius={radius}
-                setRadius={setRadius}
-                propertyType={propertyType}
-                setPropertyType={setPropertyType}
-              />
-            </div>
-            {/* New SqmPriceCounter component */}
-            {avgPricePerSqm > 0 && (
-              <SqmPriceCounter price={avgPricePerSqm} />
-            )}
+            <SearchForm onSearch={handleSearch} />
           </div>
 
           {loading && (
@@ -162,13 +192,35 @@ export default function Index() {
           )}
 
           {!loading && !error && buyListings.length > 0 && rentalListings.length > 0 && (
-            <div className="space-y-6">
-              <ListingTable
-                buyListings={buyListings}
-                rentalListings={rentalListings}
-                bestOption={bestOption}
-              />
-            </div>
+            <>
+              {avgPricePerSqm > 0 && (
+                <>
+                  <SqmPriceCounter price={avgPricePerSqm} />
+                  <Highlights
+                    avgPricePerSqm={avgPricePerSqm}
+                    bestOption={bestOption}
+                    buyListings={buyListings}
+                    rentalListings={rentalListings}
+                  />
+                </>
+              )}
+
+              {/* Ad Space Between Highlights and Listings */}
+              <div className="my-8">
+                {/* Placeholder for Ad */}
+                <div className="bg-gray-200 dark:bg-dark-border rounded-lg h-24 flex items-center justify-center">
+                  <span className="text-gray-500 dark:text-gray-400">Annonseplass</span>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <ListingTable
+                  buyListings={buyListings}
+                  rentalListings={rentalListings}
+                  bestOption={bestOption}
+                />
+              </div>
+            </>
           )}
         </div>
       </main>

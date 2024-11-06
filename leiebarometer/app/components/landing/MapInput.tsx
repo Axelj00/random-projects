@@ -1,13 +1,15 @@
 // app/components/landing/MapInput.tsx
+
 import React, { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 interface MapInputProps {
   onSelect: (address: string, coordinates: { lat: string; lon: string }) => void;
   onClose: () => void;
+  initialCoordinates?: { lat: number; lng: number } | null;
 }
 
-const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose }) => {
+const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose, initialCoordinates }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
 
@@ -19,7 +21,7 @@ const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose }) => {
 
     // Initialize the map
     const map = new google.maps.Map(mapRef.current!, {
-      center: { lat: 59.9139, lng: 10.7522 }, // Default to Oslo
+      center: initialCoordinates || { lat: 59.9139, lng: 10.7522 }, // Default to Oslo
       zoom: 13,
     });
 
@@ -42,23 +44,26 @@ const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose }) => {
             lon: location.lng().toString(),
           };
           onSelect(address, coordinates);
-          toast.success("Address selected on map");
+          toast.success("Adresse valgt på kartet");
           onClose();
         } else {
-          toast.error("Failed to get address from location");
+          toast.error("Kunne ikke hente adresse fra lokasjonen");
           console.error("Geocoding failed:", status);
         }
       });
     };
 
     // Listener for map clicks
-    const mapClickListener = map.addListener("click", (e: google.maps.MapMouseEvent) => {
-      if (e.latLng) {
-        markerRef.current!.setPosition(e.latLng);
-        map.panTo(e.latLng);
-        handleGeocode(e.latLng);
+    const mapClickListener = map.addListener(
+      "click",
+      (e: google.maps.MapMouseEvent) => {
+        if (e.latLng) {
+          markerRef.current!.setPosition(e.latLng);
+          map.panTo(e.latLng);
+          handleGeocode(e.latLng);
+        }
       }
-    });
+    );
 
     // Listener for marker drag end
     const markerDragEndListener = markerRef.current.addListener("dragend", () => {
@@ -83,7 +88,7 @@ const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose }) => {
       google.maps.event.removeListener(markerDragEndListener);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onSelect, onClose]);
+  }, [onSelect, onClose, initialCoordinates]);
 
   return (
     <div
@@ -95,7 +100,11 @@ const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose }) => {
       <div className="bg-white dark:bg-dark-card rounded-lg overflow-hidden shadow-lg w-11/12 sm:w-10/12 md:w-3/4 lg:w-1/2 h-3/4 relative">
         {/* Modal Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-dark-border">
-          <h2 id="map-modal-title" className="text-lg font-semibold text-gray-900 dark:text-dark-text">
+          <h2
+            id="map-modal-title"
+            className="text-lg font-semibold text-gray-900 dark:text-dark-text"
+          >
+            Velg adresse på kartet
           </h2>
           <button
             onClick={onClose}
