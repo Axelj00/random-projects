@@ -23,6 +23,7 @@ const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose, initialCoordinat
     const map = new google.maps.Map(mapRef.current!, {
       center: initialCoordinates || { lat: 59.9139, lng: 10.7522 }, // Default to Oslo
       zoom: 13,
+      gestureHandling: "greedy", // Improve touch gestures on mobile
     });
 
     // Initialize the marker at the center
@@ -54,16 +55,13 @@ const MapInput: React.FC<MapInputProps> = ({ onSelect, onClose, initialCoordinat
     };
 
     // Listener for map clicks
-    const mapClickListener = map.addListener(
-      "click",
-      (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-          markerRef.current!.setPosition(e.latLng);
-          map.panTo(e.latLng);
-          handleGeocode(e.latLng);
-        }
+    const mapClickListener = map.addListener("click", (e: google.maps.MapMouseEvent) => {
+      if (e.latLng) {
+        markerRef.current!.setPosition(e.latLng);
+        map.panTo(e.latLng);
+        handleGeocode(e.latLng);
       }
-    );
+    });
 
     // Listener for marker drag end
     const markerDragEndListener = markerRef.current.addListener("dragend", () => {
