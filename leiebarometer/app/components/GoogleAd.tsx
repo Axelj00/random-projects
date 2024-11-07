@@ -1,38 +1,35 @@
-// components/GoogleAd.tsx
+// app/components/GoogleAd.tsx
 
 import React, { useEffect } from "react";
 
 interface GoogleAdProps {
-  className?: string;
-  style?: React.CSSProperties;
   adClient: string;
   adSlot: string;
+  style?: React.CSSProperties;
   adFormat?: string;
   fullWidthResponsive?: boolean;
 }
 
 const GoogleAd: React.FC<GoogleAdProps> = ({
-  className = "",
-  style = { display: "block" },
   adClient,
   adSlot,
-  adFormat = "auto",
-  fullWidthResponsive = true,
+  style,
+  adFormat,
+  fullWidthResponsive,
 }) => {
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        // @ts-ignore
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        console.error("Adsbygoogle push error:", e);
+    try {
+      if (typeof window !== "undefined" && (window as any).adsbygoogle && Array.isArray((window as any).adsbygoogle)) {
+        (window as any).adsbygoogle.push({});
       }
+    } catch (e) {
+      console.error("Adsbygoogle push error:", e);
     }
   }, []);
 
   return (
     <ins
-      className={`adsbygoogle ${className}`}
+      className="adsbygoogle"
       style={style}
       data-ad-client={adClient}
       data-ad-slot={adSlot}

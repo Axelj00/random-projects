@@ -4,14 +4,14 @@ import { RemixBrowser } from "@remix-run/react";
 import { startTransition, StrictMode, useEffect } from "react";
 import { hydrateRoot } from "react-dom/client";
 import posthog from "posthog-js";
-import { useCookies } from "react-cookie";
+import { useCookies, CookiesProvider } from "react-cookie";
 
 function PosthogInit() {
   const [cookies] = useCookies(["cookieConsent"]);
 
   useEffect(() => {
     if (cookies.cookieConsent === "all") {
-      posthog.init("phc_2A05w7LYR3Hc4NjFEAjRL00wqxQ6IhRHTekQq92LE75", {
+      posthog.init("YOUR_POSTHOG_API_KEY", {
         api_host: "https://eu.i.posthog.com",
         autocapture: true,
         capture_pageview: true,
@@ -29,8 +29,10 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <RemixBrowser />
-      <PosthogInit />
+      <CookiesProvider>
+        <RemixBrowser />
+        <PosthogInit />
+      </CookiesProvider>
     </StrictMode>
   );
 });

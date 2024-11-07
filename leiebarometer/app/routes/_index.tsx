@@ -9,6 +9,17 @@ import SqmPriceCounter from "~/components/landing/SqmPriceCounter";
 import Highlights from "~/components/landing/Highlights";
 import GoogleAd from "~/components/GoogleAd";
 
+// Remove import of useHydrated from '@remix-run/react'
+
+// Define the custom useHydrated hook
+function useHydrated() {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+  return hydrated;
+}
+
 interface BuyListing {
   title: string;
   listing_url: string;
@@ -56,7 +67,10 @@ export default function Index() {
   const [avgPricePerSqm, setAvgPricePerSqm] = useState<number>(0);
 
   // State to keep track of dark mode
-  const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  // Use the custom useHydrated hook
+  const hydrated = useHydrated();
 
   useEffect(() => {
     // Check if 'dark' class is present on the html element
@@ -66,7 +80,8 @@ export default function Index() {
 
     // Observer to watch for changes in the 'dark' class
     const observer = new MutationObserver(() => {
-      const darkModeUpdated = document.documentElement.classList.contains("dark");
+      const darkModeUpdated =
+        document.documentElement.classList.contains("dark");
       setIsDarkMode(darkModeUpdated);
     });
 
@@ -162,7 +177,7 @@ export default function Index() {
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         {/* Logo and Header */}
         <div className="text-center mb-12">
-          {isDarkMode !== null && (
+          {hydrated ? (
             <img
               src={
                 isDarkMode
@@ -172,23 +187,30 @@ export default function Index() {
               alt="Leiebarometeret"
               className="mx-auto w-full max-w-xs h-auto"
             />
+          ) : (
+            <img
+              src="/brand/LBlogoLight.png"
+              alt="Leiebarometeret"
+              className="mx-auto w-full max-w-xs h-auto"
+            />
           )}
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mt-4">
-            Finn ut hva du skal gi eller ta i leie basert på faktiske markedspriser
+            Finn ut hva du skal gi eller ta i leie basert på faktiske
+            markedspriser
           </p>
         </div>
 
         {/* Disclaimer */}
         <div className="mb-8 text-center text-sm text-gray-600 dark:text-gray-400">
-          Dataene er hentet fra FINN.no, og verktøyet gir kun estimasjoner. Informasjonen skal
-          ikke tas som faktiske råd.
+          Dataene er hentet fra FINN.no, og verktøyet gir kun estimasjoner.
+          Informasjonen skal ikke tas som faktiske råd.
         </div>
 
         {/* Ad Space Above Content */}
         <div className="mb-8">
           <GoogleAd
             adClient="ca-pub-8273640777343476" // Your AdSense Publisher ID
-            adSlot="YOUR_AD_SLOT_ID" // Your Ad Unit ID
+            adSlot="YOUR_AD_SLOT_ID_1" // Your Ad Unit ID
             style={{ display: "block", textAlign: "center" }}
             adFormat="auto"
             fullWidthResponsive={true}
@@ -229,7 +251,7 @@ export default function Index() {
                 <div className="my-8">
                   <GoogleAd
                     adClient="ca-pub-8273640777343476" // Your AdSense Publisher ID
-                    adSlot="YOUR_AD_SLOT_ID" // Your Ad Unit ID
+                    adSlot="YOUR_AD_SLOT_ID_2" // Your Ad Unit ID
                     style={{ display: "block", textAlign: "center" }}
                     adFormat="auto"
                     fullWidthResponsive={true}
