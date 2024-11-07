@@ -12,7 +12,9 @@ import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import React, { useEffect } from "react";
 import { loadGoogleMaps } from "~/utils/loadGoogleMaps";
-import posthog from "posthog-js"; // Import PostHog
+import posthog from "posthog-js";
+import CookieBanner from "~/components/CookieBanner";
+import { CookiesProvider, useCookies } from "react-cookie";
 import "./tailwind.css";
 
 interface LoaderData {
@@ -40,11 +42,12 @@ export const links: LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
-  { rel: "stylesheet", href: "/build/tailwind.css" }, // Ensure Tailwind CSS is correctly linked
+  { rel: "stylesheet", href: "./app/tailwind.css" }, // Ensure Tailwind CSS is correctly linked
 ];
 
 export default function App() {
   const data = useLoaderData<LoaderData>();
+  const [cookies] = useCookies(["cookieConsent"]);
 
   useEffect(() => {
     const apiKey = data.env.GOOGLE_API_KEY;
@@ -57,15 +60,27 @@ export default function App() {
     // Initialize PostHog
     posthog.init("phc_2A05w7LYR3Hc4NjFEAjRL00wqxQ6IhRHTekQq92LE75", {
       api_host: "https://eu.i.posthog.com",
-      // You can add more configuration options here
+      autocapture: false,
+      capture_pageview: false,
     });
-  }, [data.env.GOOGLE_API_KEY]);
+
+    if (cookies.cookieConsent === "all") {
+      // Opt-in to tracking
+      posthog.opt_in_capturing();
+    } else if (cookies.cookieConsent === "necessary") {
+      // Opt-out of tracking
+      posthog.opt_out_capturing();
+    }
+  }, [data.env.GOOGLE_API_KEY, cookies.cookieConsent]);
 
   return (
-    <html lang="en">
+    <html lang="no">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+        />
         <Meta />
         <Links />
         {/* Google Ads Script */}
@@ -76,7 +91,10 @@ export default function App() {
         ></script>
       </head>
       <body>
-        <Outlet />
+        <CookiesProvider>
+          <Outlet />
+          <CookieBanner />
+        </CookiesProvider>
         <ScrollRestoration />
         <Scripts />
         <script

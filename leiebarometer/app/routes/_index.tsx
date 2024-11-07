@@ -109,7 +109,9 @@ export default function Index() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.error || "En feil oppstod under henting av annonser.");
+        setError(
+          errorData.error || "En feil oppstod under henting av annonser."
+        );
         setLoading(false);
         return;
       }
@@ -117,8 +119,13 @@ export default function Index() {
       const data = await response.json();
       console.log("API Response:", data); // Added logging for debugging
 
-      if (data.buyListings.length === 0 || data.rentalListings.length === 0) {
-        setError("Ingen treff for søket ditt. Vennligst prøv med andre søkeparametere.");
+      if (
+        data.buyListings.length === 0 ||
+        data.rentalListings.length === 0
+      ) {
+        setError(
+          "Ingen treff for søket ditt. Vennligst prøv med andre søkeparametere."
+        );
         setLoading(false);
         return;
       }
@@ -157,7 +164,11 @@ export default function Index() {
         <div className="text-center mb-12">
           {isDarkMode !== null && (
             <img
-              src={isDarkMode ? "/brand/LBlogoDark.png" : "/brand/LBlogoLight.png"}
+              src={
+                isDarkMode
+                  ? "/brand/LBlogoDark.png"
+                  : "/brand/LBlogoLight.png"
+              }
               alt="Leiebarometeret"
               className="mx-auto w-full max-w-xs h-auto"
             />
@@ -165,6 +176,12 @@ export default function Index() {
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mt-4">
             Finn ut hva du skal gi eller ta i leie basert på faktiske markedspriser
           </p>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mb-8 text-center text-sm text-gray-600 dark:text-gray-400">
+          Dataene er hentet fra FINN.no, og verktøyet gir kun estimasjoner. Informasjonen skal
+          ikke tas som faktiske råd.
         </div>
 
         {/* Ad Space Above Content */}
