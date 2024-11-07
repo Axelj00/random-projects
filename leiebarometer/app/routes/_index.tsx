@@ -7,6 +7,7 @@ import SearchForm from "~/components/landing/SearchForm";
 import ListingTable from "~/components/landing/ListingTable";
 import SqmPriceCounter from "~/components/landing/SqmPriceCounter";
 import Highlights from "~/components/landing/Highlights";
+import GoogleAd from "~/components/GoogleAd";
 
 interface BuyListing {
   title: string;
@@ -168,10 +169,13 @@ export default function Index() {
 
         {/* Ad Space Above Content */}
         <div className="mb-8">
-          {/* Placeholder for Ad */}
-          <div className="bg-gray-200 dark:bg-dark-border rounded-lg h-24 flex items-center justify-center">
-            <span className="text-gray-500 dark:text-gray-400">Annonseplass</span>
-          </div>
+          <GoogleAd
+            adClient="ca-pub-8273640777343476" // Your AdSense Publisher ID
+            adSlot="YOUR_AD_SLOT_ID" // Your Ad Unit ID
+            style={{ display: "block", textAlign: "center" }}
+            adFormat="auto"
+            fullWidthResponsive={true}
+          />
         </div>
 
         <div className="space-y-8">
@@ -185,43 +189,45 @@ export default function Index() {
             </div>
           )}
 
-          {error && (
-            <div className="text-center text-red-500">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-center text-red-500">{error}</div>}
 
-          {!loading && !error && buyListings.length > 0 && rentalListings.length > 0 && (
-            <>
-              {avgPricePerSqm > 0 && (
-                <>
-                  <SqmPriceCounter price={avgPricePerSqm} />
-                  <Highlights
-                    avgPricePerSqm={avgPricePerSqm}
-                    bestOption={bestOption}
+          {!loading &&
+            !error &&
+            buyListings.length > 0 &&
+            rentalListings.length > 0 && (
+              <>
+                {avgPricePerSqm > 0 && (
+                  <>
+                    <SqmPriceCounter price={avgPricePerSqm} />
+                    <Highlights
+                      avgPricePerSqm={avgPricePerSqm}
+                      bestOption={bestOption}
+                      buyListings={buyListings}
+                      rentalListings={rentalListings}
+                    />
+                  </>
+                )}
+
+                {/* Ad Space Between Highlights and Listings */}
+                <div className="my-8">
+                  <GoogleAd
+                    adClient="ca-pub-8273640777343476" // Your AdSense Publisher ID
+                    adSlot="YOUR_AD_SLOT_ID" // Your Ad Unit ID
+                    style={{ display: "block", textAlign: "center" }}
+                    adFormat="auto"
+                    fullWidthResponsive={true}
+                  />
+                </div>
+
+                <div className="space-y-6">
+                  <ListingTable
                     buyListings={buyListings}
                     rentalListings={rentalListings}
+                    bestOption={bestOption}
                   />
-                </>
-              )}
-
-              {/* Ad Space Between Highlights and Listings */}
-              <div className="my-8">
-                {/* Placeholder for Ad */}
-                <div className="bg-gray-200 dark:bg-dark-border rounded-lg h-24 flex items-center justify-center">
-                  <span className="text-gray-500 dark:text-gray-400">Annonseplass</span>
                 </div>
-              </div>
-
-              <div className="space-y-6">
-                <ListingTable
-                  buyListings={buyListings}
-                  rentalListings={rentalListings}
-                  bestOption={bestOption}
-                />
-              </div>
-            </>
-          )}
+              </>
+            )}
         </div>
       </main>
     </div>

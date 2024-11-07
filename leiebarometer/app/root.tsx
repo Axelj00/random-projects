@@ -12,8 +12,8 @@ import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import React, { useEffect } from "react";
 import { loadGoogleMaps } from "~/utils/loadGoogleMaps";
+import posthog from "posthog-js"; // Import PostHog
 import "./tailwind.css";
-
 
 interface LoaderData {
   env: {
@@ -53,15 +53,27 @@ export default function App() {
         console.error("Failed to load Google Maps", error);
       });
     }
+
+    // Initialize PostHog
+    posthog.init("phc_2A05w7LYR3Hc4NjFEAjRL00wqxQ6IhRHTekQq92LE75", {
+      api_host: "https://eu.i.posthog.com",
+      // You can add more configuration options here
+    });
   }, [data.env.GOOGLE_API_KEY]);
 
   return (
-    <html lang="en"> 
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* Google Ads Script */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8273640777343476"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body>
         <Outlet />
