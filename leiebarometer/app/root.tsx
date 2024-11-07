@@ -14,7 +14,8 @@ import React from "react";
 import { loadGoogleMaps } from "~/utils/loadGoogleMaps";
 import CookieBanner from "~/components/CookieBanner";
 import { CookiesProvider } from "react-cookie";
-import tailwindStylesheetUrl from "./tailwind.css"; // Import Tailwind CSS
+import { cssBundleHref } from "@remix-run/css-bundle"; // Import cssBundleHref
+import "./tailwind.css"; // Import Tailwind CSS as a side-effect
 
 interface LoaderData {
   env: {
@@ -41,7 +42,7 @@ export const links: LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter&display=swap",
   },
-  { rel: "stylesheet", href: tailwindStylesheetUrl }, // Use Remix's asset handling
+  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
 export default function App() {
@@ -61,13 +62,11 @@ export default function App() {
     <html lang="no">
       <head>
         <meta charSet="utf-8" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        {/* Google Ads Script */}
+
+        {/* Google AdSense Script */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8273640777343476"

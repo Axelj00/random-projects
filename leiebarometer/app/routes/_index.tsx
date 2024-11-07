@@ -9,8 +9,6 @@ import SqmPriceCounter from "~/components/landing/SqmPriceCounter";
 import Highlights from "~/components/landing/Highlights";
 import GoogleAd from "~/components/GoogleAd";
 
-// Remove import of useHydrated from '@remix-run/react'
-
 // Define the custom useHydrated hook
 function useHydrated() {
   const [hydrated, setHydrated] = useState(false);

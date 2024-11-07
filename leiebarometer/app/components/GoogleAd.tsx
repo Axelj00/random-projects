@@ -14,16 +14,17 @@ const GoogleAd: React.FC<GoogleAdProps> = ({
   adClient,
   adSlot,
   style,
-  adFormat,
-  fullWidthResponsive,
+  adFormat = "auto",
+  fullWidthResponsive = true,
 }) => {
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && (window as any).adsbygoogle && Array.isArray((window as any).adsbygoogle)) {
+    // Ensure adsbygoogle array exists
+    if (typeof window !== "undefined" && (window as any).adsbygoogle) {
+      try {
         (window as any).adsbygoogle.push({});
+      } catch (error) {
+        console.error("Adsbygoogle push error:", error);
       }
-    } catch (e) {
-      console.error("Adsbygoogle push error:", e);
     }
   }, []);
 
