@@ -3,12 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
 
-declare global {
-  interface Window {
-    posthog?: any; // Adjust the type as needed, or import proper types from 'posthog-js'
-  }
-}
-
 const CookieBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -22,19 +16,13 @@ const CookieBanner: React.FC = () => {
 
   const acceptAll = () => {
     setCookie("cookieConsent", "all", { path: "/" });
-    // Initialize PostHog with full tracking
-    if (window.posthog) {
-      window.posthog.opt_in_capturing();
-    }
     setIsVisible(false);
+    // Optionally reload the page to initialize PostHog
+    window.location.reload();
   };
 
   const acceptNecessary = () => {
     setCookie("cookieConsent", "necessary", { path: "/" });
-    // Disable PostHog tracking
-    if (window.posthog) {
-      window.posthog.opt_out_capturing();
-    }
     setIsVisible(false);
   };
 
